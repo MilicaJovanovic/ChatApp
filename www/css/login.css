@@ -1,0 +1,252 @@
+@import url('http://fonts.googleapis.com/css?family=Open+Sans:400,700');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html{
+	background-color: #2196F3;
+}
+
+body{
+	font:14px/1.5 Arial, Helvetica, sans-serif;
+	margin:0;
+}
+
+.icons {
+  margin-left: 88%;
+}
+
+.footer {
+    font-family: raleway;
+    font-size: 14px;
+    color: white;
+    position: fixed;
+    text-align: center;
+    bottom: 10px;
+    width: 100%;
+}
+
+::-webkit-input-placeholder {
+   color: white !important;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+   color: white !important;
+}
+
+::-moz-placeholder {  /* Firefox 19+ */
+   color: white !important;
+}
+
+:-ms-input-placeholder {
+   color: white !important;
+}
+
+@media (max-width: 1200px) {
+    .form-outer .form-inner{
+
+        padding-left: 35px;
+        padding-right: 35px;
+    }
+
+    .form-outer .form-row > label span{
+        display: block;
+        text-align: left;
+        padding: 0 0 10px;
+    }
+
+    .form-outer .form-email,
+    .form-outer .form-password{
+        display: block;
+        margin: 0 auto;
+    }
+
+    .form-outer:after{
+        bottom: -80px;
+        left: 50%;
+        margin-left: -25px;
+    }
+
+    .form-outer .fa {
+      position: absolute;
+      /*left: 390px;*/
+      top: 14px;
+      color: #fff;
+      font-size: 24px;
+    }
+}
+
+
+.form-login{
+    max-width: 400px;
+    width: 100%;
+    margin: auto auto;
+
+    font: bold 14px sans-serif;
+    text-align: center;
+}
+
+.form-outer{
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    text-align: center;
+}
+
+.form-outer .form-inner{
+    padding-top: 80px;
+}
+
+
+.form-row {
+    width: 100%;
+    position: relative;
+}
+
+.form-row .fa {
+    color: #fff;
+    top: 2px;
+    /*left: 5px;*/
+    position: absolute;
+}
+
+.form-outer .form-row{
+    text-align: left;
+    margin-bottom: 23px;
+}
+
+.form-outer .form-title-row{
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-outer .fa {
+  position: absolute;
+  /*left: 160px;*/
+  top: 14px;
+  color: #fff;
+  font-size: 24px;
+}
+
+/*
+.form-outer .form-row > label span{
+    display: inline-block;
+    box-sizing: border-box;
+    color:  #5f5f5f;
+    width: 125px;
+    text-align: right;
+    padding-right: 25px;
+}
+*/
+.inputParts{
+    width: 100%;
+    height: 50px;
+    color: white;
+    border: 1px solid #fff;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+}
+
+.userInput {
+  padding-top: 15px !important;
+  padding-left: 15px !important;
+  width: 85%;
+  font-family: raleway;
+  font-stretch: wider;
+  font-size: 16px;
+  color: white !important;
+  height: 50px;
+  font-weight: 300;
+  background: transparent;
+}
+
+.form-outer button{
+    width: 100%;
+    display: block;
+    background-color:  #fff;
+    color: #2196F3;
+    padding: 10px 35px;
+    border: 1px solid #fff;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 300;
+}
+
+
+/*	Making the form responsive. Remove these media queries
+    if you don't need the form to work on mobile devices. */
+
+@media (max-width: 900px) {
+
+    .form-login{
+        margin: 20px auto;
+    }
+
+    .form-outer{
+        position: relative;
+        display: block;
+        margin: 0 0 50px;
+    }
+
+    .form-outer .fa {
+      position: absolute;
+      /*left: 300px;*/
+      top: 14px;
+      color: #fff;
+      font-size: 24px;
+    }
+    .form-outer .form-inner{`
+        margin: 0 auto 32px;
+    }
+
+    .form-outer:after{
+        bottom: -80px;
+        left: 50%;
+        margin-left: -25px;
+    }
+
+
+}
+
+@media (max-width: 640px) {
+
+    .form-outer .form-inner{
+
+        padding-left: 35px;
+        padding-right: 35px;
+    }
+
+    .form-outer .form-row > label span{
+        display: block;
+        text-align: left;
+        padding: 0 0 10px;
+    }
+
+    .form-outer .form-email,
+    .form-outer .form-password{
+        display: block;
+        margin: 0 auto;
+    }
+
+    .form-outer:after{
+        bottom: -80px;
+        left: 50%;
+        margin-left: -25px;
+    }
+
+    .form-outer .fa {
+      position: absolute;
+      /*left: 280px;*/
+      top: 14px;
+      color: #fff;
+      font-size: 24px;
+    }
+
+}
