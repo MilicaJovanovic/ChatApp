@@ -2,7 +2,7 @@ var websocket;
 
 function openWebSocket(hn_en) {
   var wsUrl = 'wss://' + hn_en + '/websocket/chatclient';
-  websocket = websocket = new WebSocket(wsUrl);
+  websocket = new WebSocket(wsUrl);
 }
 
 function sendSocketMessage(userEmail, userPassword, userIp) {
