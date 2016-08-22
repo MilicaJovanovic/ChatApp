@@ -5,6 +5,10 @@
 // the 2nd parameter is an array of 'requires'
 
 var hn_en;
+var session_id;
+var email;
+var username;
+var password;
 var app = angular.module('starter', ['ionic', 'ngCordova'])
 
 .run(function($ionicPlatform) {
@@ -26,9 +30,22 @@ var app = angular.module('starter', ['ionic', 'ngCordova'])
 })
 
 app.controller("LoginController", function($scope) {
-  $("#loginBtn").click(function(){
-      var username = $('#username').val();
-      var password = $('#password').val();
+
+  function load_js() {
+    var head= document.getElementsByTagName('head')[0];
+    var script= document.createElement('script');
+    script.type= 'text/javascript';
+    script.src= 'js/socketChat.js';
+    head.appendChild(script);
+  }
+
+  $scope.shutDown = function() {
+    navigator.app.exitApp();
+  }
+
+  jQuery("#loginBtn").click(function(){
+      username = jQuery('#username').val();
+      password = jQuery('#password').val();
 
       if (username != "" && isValidEmailAddress(username)) {
         if (password != "" && password.length >= 8) {
@@ -46,12 +63,9 @@ app.controller("LoginController", function($scope) {
               alert("Incorrect Login Details");
             } else if (engineResponse.status == 1) {
               hn_en = engineResponse.hn_en;
-              openWebSocket(hn_en);
-              var ip;
-              $.get("http://ipinfo.io", function(response) {
-                  ip = response.ip;
-              }, "jsonp");
-              sendSocketMessage(username, password, ip);
+              session_id = engineResponse.session_id;
+              email = engineResponse.email;
+              load_js();
             }
           });
 
