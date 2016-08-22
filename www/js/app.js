@@ -68,7 +68,6 @@ app.controller("LoginController", function($scope) {
               load_js();
             }
           });
-
         } else {
           alert("Password is not valid.");
         }

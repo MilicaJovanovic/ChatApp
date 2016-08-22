@@ -1,5 +1,7 @@
 var wsUrl = 'wss://' + hn_en + '/websocket/agentlogin';
 var websocket = new WebSocket(wsUrl);
+var soundClicked;
+var vibrationClicked;
 
 websocket.onopen = function(ev) {
   //TO DO
@@ -27,13 +29,53 @@ websocket.onmessage = function(ev) {
           ip: myip
         }
 
-        console.log("Trying to log on: " + wsUrl);
         websocket.send(JSON.stringify(object));
       }
     } else if (input.type == "response_login_status") {
       if (input.login == 1) {
-        //TO DO
-        //Napisati logiku kada je login uspesan
+        location.href = "chat.html";
+
+        // Nedovrsena logika za logout
+        $("#logoutBtn").click(function() {
+          alert("Are you sure?");
+          var object = {
+            type : "request_login"
+          }
+          websocket.send(JSON.stringify(object));
+
+          if (input.type.equals("response_logout_status")) {
+            if (input.logout == 1) {
+              location.href = "index.html";
+            } else {
+              alert("Logout failed");
+            }
+          }
+        });
+
+        // Logika za zvuk
+        soundClicked = true;
+        $("#soundBtn").click(function() {
+            if (soundClicked) {
+              soundClicked = false;
+            } else {
+              soundClicked = true;
+            }
+            console.log(soundClicked);
+        });
+
+        // Logika za vibraciju
+        vibrationClicked = true;
+        $("#vibrationBtn").click(function() {
+            if (vibrationClicked) {
+              vibrationClicked = false;
+            } else {
+              vibrationClicked = true;
+            }
+            console.log(vibrationClicked);
+        });
+
+        // Logika za agent name
+        $("#agentName").html(input.agentDisplayName);
       } else {
         alert("Unable to Authenticate to Server!");
         angular.element(document.getElementById('body')).scope().shutDown();
