@@ -1,3 +1,6 @@
+//Koristi se localStorage kako bi se sesija ponovo uspostavila
+//na svim fajlovima (stranicama) koje koriste fajl socketChat
+var hn_en = localStorage.getItem('hn_en');
 var wsUrl = 'wss://' + hn_en + '/websocket/agentlogin';
 var websocket = new WebSocket(wsUrl);
 var soundClicked;
@@ -22,68 +25,80 @@ websocket.onmessage = function(ev) {
         alert("Unable to Connect to Server!");
         angular.element(document.getElementById('body')).scope().shutDown();
       } else {
-        var object = {
-          type: "request_login",
-          name: email,
-          password: session_id,
-          ip: myip
-        }
+        var doesConnectionExist = localStorage.getItem('socket');
+        //Provera da se ne radi duplo logovanje
+        if (doesConnectionExist != 'true') {
+            var object = {
+                type: "request_login",
+                name: email,
+                password: session_id,
+                ip: myip
+            }
 
-        websocket.send(JSON.stringify(object));
+            websocket.send(JSON.stringify(object));
+        }
       }
     } else if (input.type == "response_login_status") {
       if (input.login == 1) {
+        //Obelezje u localStorage po kojem se pamti da li je ovo
+        //login stranica ili bilo koja druga stranica
+        localStorage.setItem('socket', 'true');
         location.href = "chat.html";
-
-        // Nedovrsena logika za logout
-        $("#logoutBtn").click(function() {
-          alert("Are you sure?");
-          var object = {
-            type : "request_login"
-          }
-          websocket.send(JSON.stringify(object));
-
-          if (input.type.equals("response_logout_status")) {
-            if (input.logout == 1) {
-              location.href = "index.html";
-            } else {
-              alert("Logout failed");
-            }
-          }
-        });
-
-        // Logika za zvuk
-        soundClicked = true;
-        $("#soundBtn").click(function() {
-            if (soundClicked) {
-              soundClicked = false;
-            } else {
-              soundClicked = true;
-            }
-            console.log(soundClicked);
-        });
-
-        // Logika za vibraciju
-        vibrationClicked = true;
-        $("#vibrationBtn").click(function() {
-            if (vibrationClicked) {
-              vibrationClicked = false;
-            } else {
-              vibrationClicked = true;
-            }
-            console.log(vibrationClicked);
-        });
-
-        // Logika za agent name
-        $("#agentName").html(input.agentDisplayName);
       } else {
         alert("Unable to Authenticate to Server!");
         angular.element(document.getElementById('body')).scope().shutDown();
       }
-    }
+  } else if (input.type == "response_logout_status") {
+      if (input.logout == 1) {
+          localStorage.removeItem('socket');
+          location.href = "index.html";
+      } else {
+          alert("Logout Failed");
+      }
+  }
 };
 
 websocket.onerror = function(ev) {
     //TO DO
     //Dodati logiku sta se desava svaki put kad socket baci neku gresku
 };
+
+//Kod pomeren tako da moze da se reaguje na dugmice i pristupi kodu
+//sa svake stranice koja koristi fajl socketChat.js
+jQuery(document).ready(function() {
+    // Zavrsena logika za logout
+    //TO DO JSON nije dobar
+    $("#logoutBtn").click(function() {
+      alert("Are you sure?");
+      var object = {
+        type : "request_logout"
+      }
+      websocket.send(JSON.stringify(object));
+    });
+
+    // Logika za zvuk
+    soundClicked = true;
+    $("#soundBtn").click(function() {
+        if (soundClicked) {
+          soundClicked = false;
+        } else {
+          soundClicked = true;
+        }
+        console.log(soundClicked);
+    });
+
+    // Logika za vibraciju
+    vibrationClicked = true;
+    $("#vibrationBtn").click(function() {
+        if (vibrationClicked) {
+          vibrationClicked = false;
+        } else {
+          vibrationClicked = true;
+        }
+        console.log(vibrationClicked);
+    });
+
+    // Logika za agent name
+    //Trenutno zakomentarisano jer ne radi
+    // $("#agentName").html(input.agentDisplayName);
+});
