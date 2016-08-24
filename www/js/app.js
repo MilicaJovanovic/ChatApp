@@ -57,9 +57,13 @@ app.controller("LoginController", function($scope) {
           $.post('https://portal.conversity.net/app/mobclient/login.php', data, function(response) {
             var engineResponse = JSON.parse(response);
             if(engineResponse.status == 2) {
-              alert("Account Disabled");
+              $("#alertAccDsbl").delay(200).hide(0, function() {
+                 $("#alertAccDsbl").fadeIn().delay(1300).fadeOut(300);
+               });
             } else if (engineResponse.status == 0) {
-              alert("Incorrect Login Details");
+              $("#alertLogDet").delay(200).hide(0, function() {
+                 $("#alertLogDet").fadeIn().delay(1300).fadeOut(300);
+             });
             } else if (engineResponse.status == 1) {
               localStorage.setItem('hn_en',  engineResponse.hn_en);
               session_id = engineResponse.session_id;
@@ -68,10 +72,14 @@ app.controller("LoginController", function($scope) {
             }
           });
         } else {
-          alert("Password is not valid.");
+          $("#alertPass").delay(200).hide(0, function() {
+             $("#alertPass").fadeIn().delay(1300).fadeOut(300);
+         });
         }
       } else {
-        alert("Username is not valid.");
+        $("#alertUsr").delay(200).hide(0, function() {
+             $("#alertUsr").fadeIn().delay(1300).fadeOut(300);
+         });
       }
   });
 });
