@@ -4,8 +4,6 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 
-var session_id;
-var email;
 var username;
 var password;
 var app = angular.module('starter', ['ionic', 'ngCordova'])
@@ -56,15 +54,16 @@ app.controller("LoginController", function($scope) {
           var data = JSON.stringify(object);
           $.post('https://portal.conversity.net/app/mobclient/login.php', data, function(response) {
             var engineResponse = JSON.parse(response);
+            console.log(engineResponse);
             if(engineResponse.status == 2) {
               alert("Account Disabled");
             } else if (engineResponse.status == 0) {
               alert("Incorrect Login Details");
             } else if (engineResponse.status == 1) {
-              localStorage.setItem('hn_en',  engineResponse.hn_en);
-              session_id = engineResponse.session_id;
-              email = engineResponse.email;
-              load_js();
+              localStorage.setItem('hn_en', engineResponse.hn_en);
+              localStorage.setItem('session_id', engineResponse.session_id);
+              localStorage.setItem('email', engineResponse.email);
+              window.location = "chat.html";
             }
           });
         } else {

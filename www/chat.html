@@ -9,6 +9,7 @@
   <link href="css/bootstrap.min.css" rel="stylesheet">
   <link href="css/font-awesome.min.css" rel="stylesheet">
   <link href="css/custom.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="lib/ionic/js/ionic.bundle.js"></script>
   <script src="cordova.js"></script>
@@ -16,6 +17,19 @@
   <script src="js/app.js"></script>
   <script src="js/socketChat.js"></script>
   <script type="text/javascript" src="http://l2.io/ip.js?var=myip"></script>
+
+  <!-- Kod koji sluzi da povecava text polje kada se kuca kod -->
+  <script>
+    var textarea = null;
+    window.addEventListener("load", function() {
+        textarea = window.document.querySelector("textarea");
+        textarea.addEventListener("keypress", function() {
+            if(textarea.scrollTop != 0){
+                textarea.style.height = textarea.scrollHeight + "px";
+            }
+        }, false);
+    }, false);
+  </script>
 </head>
 
 <body ng-app="starter" ng-controller="LoginController">
@@ -37,10 +51,6 @@
         <ul class="nav nav-pills " role="tablist">
           <li role="presentation" class="active"><a href="#home" aria-controls="home" role="tab" data-toggle="tab">Customer 1 <span class="badge">5</span></a></li>
           <li role="presentation"><a href="#profile" aria-controls="profile" role="tab" data-toggle="tab">Customer 2</a></li>
-          <li role="presentation"><a href="#messages" aria-controls="messages" role="tab" data-toggle="tab">Customer 3</a></li>
-          <li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Customer 4</a></li>
-          <li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Customer 5</a></li>
-          <li role="presentation"><a href="#settings" aria-controls="settings" role="tab" data-toggle="tab">Customer 6</a></li>
         </ul>
         <div class="tab-content hide">
           <div role="tabpanel" class="tab-pane active" id="home">Customer 1 </div>
@@ -60,7 +70,7 @@
         <option>Template 4</option>
         <option>Template 5</option>
       </select>
-      <span><i class="fa fa-times"></i> </span>
+      <span id="endBtn"><i class="fa fa-times"></i> </span>
     </section>
   </header>
   <section class="container-fluid chat-container">
@@ -110,13 +120,13 @@
 
   <footer class="footer-col">
     <section class="template-col">
-      <select class="form-control">
-        <option>Select Template Reply</option>
-        <option>Template 1</option>
+      <select class="form-control" id="cannedMessageSelect">
+        <option selected disabled>Select Template Reply</option>
+        <!-- <option>Template 1</option>
         <option>Template 2</option>
         <option>Template 3</option>
         <option>Template 4</option>
-        <option>Template 5</option>
+        <option>Template 5</option> -->
       </select>
       <span><i class="fa fa-plus"></i> </span>
       <div class="dropup updrop">
@@ -129,8 +139,8 @@
       </div>
     </section>
     <div class="form-group">
-      <textarea class="form-control" placeholder="Your Message here..."></textarea>
-      <button typeof="button" class="btn btn-primary"><i class="fa fa-send"></i> </button>
+      <textarea id="userInput" class="form-control" placeholder="Your Message here..."></textarea>
+      <button id="btnSend" typeof="button" class="btn btn-primary"><i class="fa fa-send"></i> </button>
     </div>
     <p class="text-center brand-name">&copy; Conversity</p>
   </footer>
