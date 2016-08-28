@@ -224,7 +224,8 @@ function clickResponse() {
     currentSelectedSession = this.id;
     currentSelectedUsername = foundChat.chatVisitorName;
 
-    $('#chat' + this.chatSessionID).show();
+    $(".chatContainer").attr('style', 'display: none !important');
+    $("#chat" + this.id).attr('style', 'display: block !important');
 
     var tempChats = currentChats;
     localStorage.removeItem('currentChats');
