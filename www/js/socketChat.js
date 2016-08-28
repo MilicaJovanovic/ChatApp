@@ -157,6 +157,7 @@ websocket.onmessage = function(ev) {
 
       $('<li id="' + newChat.chatSessionID + '" role="presentation"><a href="#' + input.chatVisitorName + '" aria-controls="profile" role="tab" data-toggle="tab">' + input.chatVisitorName + '</a></li>').appendTo(".nav-pills");
 
+
       $('<section class="chatContainer" id="chat' + newChat.chatSessionID + '"></section>').appendTo("#chatsArea");
 
       addListeners();

@@ -31,6 +31,9 @@
   bottom: 111px;
 }
 
+#tabsDiv {
+  width: 100% !important;
+}
 .chatContainer {
   overflow-x: scroll;
   overflow-y: scroll;
