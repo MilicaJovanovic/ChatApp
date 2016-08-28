@@ -75,11 +75,14 @@ websocket.onmessage = function(ev) {
         var cannedMessages = input.cannedMessages;
         for (var i = 0; i < 100; i++) {
           if (cannedMessages["Sales Team"][i] != null) {
-            realCannedMessages.push(i);
-            realCannedMessages.push(cannedMessages["Sales Team"][i]);
+            var newCannedMessage = {
+              id : i,
+              message : cannedMessages["Sales Team"][i]
+            }
+            realCannedMessages.push(newCannedMessage);
           }
         }
-        localStorage.setItem('cannedMessages', realCannedMessages);
+        localStorage.setItem('cannedMessages', JSON.stringify(realCannedMessages));
 
         localStorage.setItem('socket', 'true');
         localStorage.setItem('sessionID', input.sessionID);
@@ -98,35 +101,27 @@ websocket.onmessage = function(ev) {
           $("#agentName").html(agentDisplayName);
 
           //Logika za prikaz canned messages
-          var realCannedMessages = localStorage.getItem('cannedMessages');
-          var selectValues;
-          if (realCannedMessages != null) {
-            selectValues = realCannedMessages.split(',');
-          }
-          var counter = 1;
-          $.each(selectValues, function(key, value) {
-            if(counter % 2 == 0) {
-              $('#cannedMessageSelect')
-                  .append($("<option></option>")
-                             .attr("value", value)
-                             .text(value));
+          var realCannedMessages = JSON.parse(localStorage.getItem('cannedMessages'));
+          for (var i = 0; i < realCannedMessages.length; i++) {
+            if (realCannedMessages[i].message != null) {
+              var value = realCannedMessages[i].message;
+              $('#cannedMessageSelect').append($("<option></option>").attr("value", value).text(value));
             }
-            counter++;
-          });
+          }
 
           $('#cannedMessageSelect').on('change', function (e) {
               var optionSelected = $("option:selected", this);
               var valueSelected = this.value;
-              var selectedId;
-              $.each(selectValues, function(key, value) {
-                if(valueSelected === value) {
-                  console.log("Tekst: " + valueSelected);
-                  selectedId = selectValues.prev();
-                  console.log("ID: " + selectedId);
-                }
-              });
+              for (var i = 0; i < realCannedMessages.length; i++) {
+                if (realCannedMessages[i].message == valueSelected) {
+                  var object = {
+                    type: "request_canned_message",
+                    id: realCannedMessages[i].id
+                  }
 
-            $("#userTextMessage").val($('#userTextMessage').val() + valueSelected);
+                  websocket.send(JSON.stringify(object));
+                }
+              }
           });
       }, 1000);
   } else if (input.type == "response_logout_status") {
@@ -201,6 +196,15 @@ websocket.onmessage = function(ev) {
         $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + "Me" + '<span class="pull-right">' + finalTime + '</span></p><p>' + innerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
       }
     }
+  } else if (input.type == "response_canned_message") {
+    $("#userInput").val($('#userInput').val() + input.cannedMessageText);
+  } else if (input.type == "response_chat_end_message") {
+    $('<div style="margin: 20px 0px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+
+    //TO DO
+    //Napraviti logiku da se iz baze brise aktivan chat?
+  } else if (input.type == "response_endchat_status") {
+    $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + "Me" + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.message + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
   }
 };
 
