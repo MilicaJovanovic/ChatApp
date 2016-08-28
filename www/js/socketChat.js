@@ -8,6 +8,27 @@ var vibrationClicked;
 var currentSelectedSession;
 var currentSelectedUsername;
 
+//Funkcija koja proverava da li postoji internet koneckcija
+function doesConnectionExist() {
+    var xhr = new XMLHttpRequest();
+    var file = "http://dusannesicdevelopment.sytes.net/webAndroid/js/index.js";
+    var randomNum = Math.round(Math.random() * 10000);
+
+    xhr.open('HEAD', file + "?rand=" + randomNum, false);
+
+    try {
+        xhr.send();
+
+        if (xhr.status >= 200 && xhr.status < 304) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (e) {
+        return false;
+    }
+}
+
 websocket.onopen = function(ev) {
   //TO DO
   //Logika koja se desava kada se otvori soket
@@ -253,19 +274,58 @@ function clickResponse() {
     localStorage.setItem('currentChats', JSON.stringify(tempChats));
 }
 
+function logout() {
+  var object = {
+    type : "request_logout"
+  }
+  websocket.send(JSON.stringify(object));
+  localStorage.clear();
+  window.location = "index.html";
+}
+
 //Kod pomeren tako da moze da se reaguje na dugmice i pristupi kodu
 //sa svake stranice koja koristi fajl socketChat.js
 jQuery(document).ready(function() {
+  //Provera interneta
+  setInterval(function(){
+      var hasInternet = doesConnectionExist();
+      if (!hasInternet) {
+          var x = document.getElementById("alertOffline");
+          $("#alertOffline").css("display", "block");
+          x.className = "show";
+      } else {
+          var hadNet = localStorage.getItem('hadNet');
+          if (hadNet == 'true') {
+              var x = document.getElementById("alertOnline");
+              var y = document.getElementById("alertOffline");
+              $("#alertOnline").css("display", "block");
+              $("#alertOffline").css("display", "block");
+              y.className = y.className.replace("show", "");
+              x.className = "show";
+              setTimeout(function() {
+                x.className = x.className.replace("show", "");
+
+                localStorage.setItem("reloaded", 1);
+
+                function load_js() {
+                  var head= document.getElementsByTagName('head')[0];
+                  var script= document.createElement('script');
+                  script.type= 'text/javascript';
+                  script.src= 'http://dusannesicdevelopment.sytes.net/web/js/socketChat.js?v=22';
+                  head.appendChild(script);
+                }
+                load_js();
+              }, 3000);
+              localStorage.setItem('hadNet', 'false');
+          }
+      }
+  }, 1000);
+
     // Zavrsena logika za logout
     //TO DO JSON nije dobar
     $("#logoutBtn").click(function() {
       alert("Are you sure?");
-      var object = {
-        type : "request_logout"
-      }
-      websocket.send(JSON.stringify(object));
-      localStorage.clear();
-      window.location = "index.html";
+      logout();
     });
 
     // Logika za zvuk

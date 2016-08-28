@@ -26,7 +26,17 @@ var app = angular.module('starter', ['ionic', 'ngCordova'])
   });
 })
 
-app.controller("LoginController", function($scope) {
+app.controller("LoginController", function($scope, $ionicPlatform) {
+
+  $ionicPlatform.registerBackButtonAction(function(event) {
+    if (window.location == "file:///android_asset/www/index.html") {
+        localStorage.clear();
+        navigator.app.exitApp();
+    } else {
+        alert("Are you sure?");
+        logout();
+    }
+  }, 100);
 
   function load_js() {
     var head= document.getElementsByTagName('head')[0];
