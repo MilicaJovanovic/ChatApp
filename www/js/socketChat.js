@@ -187,12 +187,18 @@ websocket.onmessage = function(ev) {
 
     var firstInnerParams = params[0].split("^|^|");
     $('<div style="margin: 20px 0px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + firstInnerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+
+    var secondInnerParams = params[1].split("^|^|");
+    $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + "Me" + '<span class="pull-right">' + finalTime + '</span></p><p>' + secondInnerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
     for (var i = 1; i < params.length-1; i++) {
       if (i % 2 != 0) {
         if (params[i+1].length > 1) {
           var innerParams = params[i+1].split("^|^|");
           $('<div style="margin: 20px 0px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + innerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
         }
+      } else {
+        var innerParams = params[i+1].split("^|^|");
+        $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + "Me" + '<span class="pull-right">' + finalTime + '</span></p><p>' + innerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
       }
     }
   }
