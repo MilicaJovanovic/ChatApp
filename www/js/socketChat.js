@@ -6,6 +6,7 @@ var websocket = new WebSocket(wsUrl);
 var soundClicked;
 var vibrationClicked;
 var currentSelectedSession;
+var currentSelectedUsername;
 
 websocket.onopen = function(ev) {
   //TO DO
@@ -175,16 +176,9 @@ websocket.onmessage = function(ev) {
 
           //TO DO - obrisati i tab na grafici
       }
+  } else if (input.type == "responce_chat_message") {
+      $('<div class="chat-list"><aside class="chat-content"><p class="small chat-title">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat-container');
   }
-  // } else if (primljena poruka) {
-  //     //TO DO razlikovati posebne chatove
-  //
-  //     $('<div class="chat-list"><aside class="chat-content"><p class="small chat-title">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo(#chat-container);
-  // } else if (poslata poruka) {
-  //     //TO DO razlikovati posebne chatove
-  //
-  //     $('<div class="chat-list-alter"><aside class="chat-content"><p class="small chat-title">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo(#chat-container);
-  // }
 };
 
 websocket.onerror = function(ev) {
@@ -210,8 +204,6 @@ function clickResponse() {
     for (var i = 0; i < currentChats.length; i++) {
         if (currentChats[i].chatSessionID == this.id) {
             foundChat = currentChats[i];
-            currentChats[i].chatType = "trf";
-            break;
         }
     }
     alert(foundChat.chatType);
@@ -228,6 +220,7 @@ function clickResponse() {
         }
     }
     currentSelectedSession = this.id;
+    currentSelectedUsername = foundChat.chatVisitorName;
 
     var tempChats = currentChats;
     localStorage.removeItem('currentChats');
@@ -274,6 +267,16 @@ jQuery(document).ready(function() {
     $("#btnSend").click(function() {
         var message = $("#userInput").val();
 
+        var time = new Date();
+        var hours = time.getHours();
+        var minutes = time.getMinutes();
+
+        if (minutes < 10) {
+            var finalTime = hours + ":0" + minutes;
+        } else {
+            var finalTime = hours + ":" + minutes;
+        }
+
         var object = {
             type: "request_chat_message",
             chatSessionID: currentSelectedSession,
@@ -282,9 +285,10 @@ jQuery(document).ready(function() {
 
         websocket.send(JSON.stringify(object));
 
+        var username = $("#agentName").html();
         $("#userInput").val("");
 
-        //TO DO - povezati sa grafikom da se iscrtava
+        $('<div class="chat-list-alter"><aside class="chat-content"><p class="small chat-title">' + username + '<span class="pull-right">' + finalTime + '</span></p><p>' + message + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat-container');
     });
 
     $("#endBtn").click(function() {
