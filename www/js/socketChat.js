@@ -292,7 +292,7 @@ jQuery(document).ready(function() {
         var username = $("#agentName").html();
         $("#userInput").val("");
 
-        $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + username + '<span class="pull-right">' + finalTime + '</span></p><p>' + message + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat-container');
+        $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + username + '<span class="pull-right">' + finalTime + '</span></p><p>' + message + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
     });
 
     $("#endBtn").click(function() {
