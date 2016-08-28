@@ -81,6 +81,11 @@ websocket.onmessage = function(ev) {
                 ip: myip
             }
 
+            console.log("SESIJA: " + localStorage.getItem('sessionID'));
+            console.log("AGENT: " + localStorage.getItem('agentID'));
+            console.log("CLIENT: " + localStorage.getItem('clientID'));
+            console.log("IP: " + myip);
+
             websocket.send(JSON.stringify(object));
         }
       }
@@ -197,6 +202,12 @@ websocket.onmessage = function(ev) {
       }
   } else if (input.type == "responce_chat_message") {
       $('<div style="margin: 20px 0px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+
+      //counter nevidljivi u svakom tabu
+      //input.chatSessionID = li.id
+      //li.id.appendTo(counter++);
+      //if (aktivanChat == input.chatSessionID) { ne radi nista }
+      //if (aktivanChat != input.chatSessionID) { upotrebi logiku odozgo }
   } else if (input.type == "response_chat_accept") {
     var interim = input.interimChatMessages;
     var params = interim.split("|^^|");
@@ -266,6 +277,8 @@ function clickResponse() {
     currentSelectedSession = this.id;
     currentSelectedUsername = foundChat.chatVisitorName;
 
+    //Counter koji se nalazi u this.id - vrati na 0 i sakrij
+
     $(".chatContainer").attr('style', 'display: none !important');
     $("#chat" + this.id).attr('style', 'display: block !important');
 
@@ -293,6 +306,7 @@ jQuery(document).ready(function() {
           var x = document.getElementById("alertOffline");
           $("#alertOffline").css("display", "block");
           x.className = "show";
+          localStorage.setItem('hadNet', 'true');
       } else {
           var hadNet = localStorage.getItem('hadNet');
           if (hadNet == 'true') {
@@ -305,13 +319,11 @@ jQuery(document).ready(function() {
               setTimeout(function() {
                 x.className = x.className.replace("show", "");
 
-                localStorage.setItem("reloaded", 1);
-
                 function load_js() {
                   var head= document.getElementsByTagName('head')[0];
                   var script= document.createElement('script');
                   script.type= 'text/javascript';
-                  script.src= 'http://dusannesicdevelopment.sytes.net/web/js/socketChat.js?v=22';
+                  script.src= '/js/socketChat.js';
                   head.appendChild(script);
                 }
                 load_js();
