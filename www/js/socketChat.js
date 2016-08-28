@@ -157,6 +157,8 @@ websocket.onmessage = function(ev) {
 
       $('<li id="' + newChat.chatSessionID + '" role="presentation"><a href="#' + input.chatVisitorName + '" aria-controls="profile" role="tab" data-toggle="tab">' + input.chatVisitorName + '</a></li>').appendTo(".nav-pills");
 
+      $('<section class="chatContainer" id="chat' + newChat.chatSessionID + '"></section>').appendTo("#chatsArea");
+
       addListeners();
   } else if (input.type == "response_remove_chat_alert") {
       var currentChats = JSON.parse(localStorage.getItem('currentChats'));
@@ -177,7 +179,7 @@ websocket.onmessage = function(ev) {
           //TO DO - obrisati i tab na grafici
       }
   } else if (input.type == "responce_chat_message") {
-      $('<div class="chat-list"><aside class="chat-content"><p class="small chat-title">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat-container');
+      $('<div class="chat-list"><aside class="chat-content"><p class="small chat-title">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
   }
 };
 
@@ -221,6 +223,8 @@ function clickResponse() {
     }
     currentSelectedSession = this.id;
     currentSelectedUsername = foundChat.chatVisitorName;
+
+    $('#chat' + this.chatSessionID).show();
 
     var tempChats = currentChats;
     localStorage.removeItem('currentChats');
