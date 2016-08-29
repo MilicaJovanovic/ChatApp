@@ -342,12 +342,12 @@ jQuery(document).ready(function() {
             $("#userInput").prop('disabled', true);
             $("#cannedMessageSelect").prop('disabled', true);
             $("#btnSend").prop('disabled', true);
-            $("#endBtn").prop('disabled', true);
+            $("#endBtn").attr('style', 'display: none !important');
         } else {
             $("#userInput").prop('disabled', false);
             $("#cannedMessageSelect").prop('disabled', false);
             $("#btnSend").prop('disabled', false);
-            $("#endBtn").prop('disabled', false);
+            $("#endBtn").attr('style', 'display: inline-block !important');
         }
     }, 1000);
 
