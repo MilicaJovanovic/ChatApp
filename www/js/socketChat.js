@@ -7,6 +7,33 @@ var soundClicked;
 var vibrationClicked;
 var currentSelectedSession;
 var currentSelectedUsername;
+var audio = new Audio('http://dusannesicdevelopment.sytes.net/web/res/Alert_NewMsg.mp3');
+
+//Funkcija koja proverava da li postoji internet koneckcija
+function doesConnectionExist() {
+    var xhr = new XMLHttpRequest();
+    var file = "http://dusannesicdevelopment.sytes.net/webAndroid/js/index.js";
+    var randomNum = Math.round(Math.random() * 10000);
+
+    xhr.open('HEAD', file + "?rand=" + randomNum, false);
+
+    try {
+        xhr.send();
+
+        if (xhr.status >= 200 && xhr.status < 304) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (e) {
+        return false;
+    }
+}
+
+function replaceURLWithHTMLLinks(text) {
+   var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+   return text.replace(exp,"<a href='$1' style='color:#fff;' target='blank'>Click to open link</a>");
+}
 
 websocket.onopen = function(ev) {
   //TO DO
@@ -31,6 +58,7 @@ websocket.onmessage = function(ev) {
     } else {
         var finalTime = hours + ":" + minutes;
     }
+
 
     if (input.type == "response_session_opened") {
       if (input.status == 0) {
@@ -60,6 +88,11 @@ websocket.onmessage = function(ev) {
                 ip: myip
             }
 
+            console.log("SESIJA: " + localStorage.getItem('sessionID'));
+            console.log("AGENT: " + localStorage.getItem('agentID'));
+            console.log("CLIENT: " + localStorage.getItem('clientID'));
+            console.log("IP: " + myip);
+
             websocket.send(JSON.stringify(object));
         }
       }
@@ -75,11 +108,14 @@ websocket.onmessage = function(ev) {
         var cannedMessages = input.cannedMessages;
         for (var i = 0; i < 100; i++) {
           if (cannedMessages["Sales Team"][i] != null) {
-            realCannedMessages.push(i);
-            realCannedMessages.push(cannedMessages["Sales Team"][i]);
+            var newCannedMessage = {
+              id : i,
+              message : cannedMessages["Sales Team"][i]
+            }
+            realCannedMessages.push(newCannedMessage);
           }
         }
-        localStorage.setItem('cannedMessages', realCannedMessages);
+        localStorage.setItem('cannedMessages', JSON.stringify(realCannedMessages));
 
         localStorage.setItem('socket', 'true');
         localStorage.setItem('sessionID', input.sessionID);
@@ -98,35 +134,27 @@ websocket.onmessage = function(ev) {
           $("#agentName").html(agentDisplayName);
 
           //Logika za prikaz canned messages
-          var realCannedMessages = localStorage.getItem('cannedMessages');
-          var selectValues;
-          if (realCannedMessages != null) {
-            selectValues = realCannedMessages.split(',');
-          }
-          var counter = 1;
-          $.each(selectValues, function(key, value) {
-            if(counter % 2 == 0) {
-              $('#cannedMessageSelect')
-                  .append($("<option></option>")
-                             .attr("value", value)
-                             .text(value));
+          var realCannedMessages = JSON.parse(localStorage.getItem('cannedMessages'));
+          for (var i = 0; i < realCannedMessages.length; i++) {
+            if (realCannedMessages[i].message != null) {
+              var value = realCannedMessages[i].message;
+              $('#cannedMessageSelect').append($("<option></option>").attr("value", value).text(value));
             }
-            counter++;
-          });
+          }
 
           $('#cannedMessageSelect').on('change', function (e) {
               var optionSelected = $("option:selected", this);
               var valueSelected = this.value;
-              var selectedId;
-              $.each(selectValues, function(key, value) {
-                if(valueSelected === value) {
-                  console.log("Tekst: " + valueSelected);
-                  selectedId = selectValues.prev();
-                  console.log("ID: " + selectedId);
-                }
-              });
+              for (var i = 0; i < realCannedMessages.length; i++) {
+                if (realCannedMessages[i].message == valueSelected) {
+                  var object = {
+                    type: "request_canned_message",
+                    id: realCannedMessages[i].id
+                  }
 
-            $("#userTextMessage").val($('#userTextMessage').val() + valueSelected);
+                  websocket.send(JSON.stringify(object));
+                }
+              }
           });
       }, 1000);
   } else if (input.type == "response_logout_status") {
@@ -139,6 +167,7 @@ websocket.onmessage = function(ev) {
         });
       }
   } else if (input.type == "response_new_chat_alert") {
+
       //Kada dodje nova sesija (chat) onda se baza updatuje
       var currentChats = JSON.parse(localStorage.getItem('currentChats'));
       var tempChats = [];
@@ -156,7 +185,16 @@ websocket.onmessage = function(ev) {
       localStorage.setItem('currentChats', JSON.stringify(tempChats));
 
       $('<li id="' + newChat.chatSessionID + '" role="presentation"><a href="#' + input.chatVisitorName + '" aria-controls="profile" role="tab" data-toggle="tab">' + input.chatVisitorName + '</a></li>').appendTo(".nav-pills");
+      //Skroluje tabove
+      var stab = $(".scroll-tab");
+      stab.scrollTop(stab.prop('scrollWidth'));
 
+      if (soundClicked) {
+          audio.play();
+      }
+      if (vibrationClicked) {
+        angular.element($("body")).scope().vibrateNow();
+      }
 
       $('<section class="chatContainer" id="chat' + newChat.chatSessionID + '"></section>').appendTo("#chatsArea");
 
@@ -180,7 +218,61 @@ websocket.onmessage = function(ev) {
           //TO DO - obrisati i tab na grafici
       }
   } else if (input.type == "responce_chat_message") {
-      $('<div style="margin: 20px 0px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+
+        var inputtxt = input.chatMessage;
+        var userMessage = replaceURLWithHTMLLinks(inputtxt);
+
+      $('<div style="margin: 20px 0px 0px 8px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + userMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+
+      if (input.chatSessionID != currentSelectedSession) {
+          $("<span style='background: #ff5858 !important; color: white !important' class='badge'").appendTo("#" + input.chatSessionID);
+      }
+
+      //Skrolovanje nakon primljene poruke
+      var div = $(".chatContainer");
+      div.scrollTop(div.prop('scrollHeight'));
+
+      if (soundClicked) {
+          audio.play();
+      }
+      if (vibrationClicked) {
+        angular.element($("body")).scope().vibrateNow();
+      }
+
+      //counter nevidljivi u svakom tabu
+      //input.chatSessionID = li.id
+      //li.id.appendTo(counter++);
+      //if (aktivanChat == input.chatSessionID) { ne radi nista }
+      //if (aktivanChat != input.chatSessionID) { upotrebi logiku odozgo }
+  } else if (input.type == "response_chat_accept") {
+    var interim = input.interimChatMessages;
+    var params = interim.split("|^^|");
+
+    var firstInnerParams = params[0].split("^|^|");
+    $('<div style="margin: 20px 0px 0px 8px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + firstInnerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+
+    var secondInnerParams = params[1].split("^|^|");
+    $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + "Me" + '<span class="pull-right">' + finalTime + '</span></p><p>' + secondInnerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
+    for (var i = 1; i < params.length-1; i++) {
+      if (i % 2 != 0) {
+        if (params[i+1].length > 1) {
+          var innerParams = params[i+1].split("^|^|");
+          $('<div style="margin: 20px 0px 0px 8px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + innerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+        }
+      } else {
+        var innerParams = params[i+1].split("^|^|");
+        $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + "Me" + '<span class="pull-right">' + finalTime + '</span></p><p>' + innerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
+      }
+    }
+  } else if (input.type == "response_canned_message") {
+    $("#userInput").val($('#userInput').val() + input.cannedMessageText);
+  } else if (input.type == "response_chat_end_message") {
+    $('<div style="margin: 20px 0px 0px 80px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+
+    //TO DO
+    //Napraviti logiku da se iz baze brise aktivan chat?
+  } else if (input.type == "response_endchat_status") {
+    $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + "Me" + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.message + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
   }
 };
 
@@ -209,21 +301,19 @@ function clickResponse() {
             foundChat = currentChats[i];
         }
     }
-    alert(foundChat.chatType);
     if (foundChat != null) {
         if (foundChat.chatType == "new") {
             var object = {
                 type: "request_chat_request_accepted",
                 chatSessionID: this.id
             }
-
-            alert(this.id);
-
             websocket.send(JSON.stringify(object));
         }
     }
     currentSelectedSession = this.id;
     currentSelectedUsername = foundChat.chatVisitorName;
+
+    //Counter koji se nalazi u this.id - vrati na 0 i sakrij
 
     $(".chatContainer").attr('style', 'display: none !important');
     $("#chat" + this.id).attr('style', 'display: block !important');
@@ -233,19 +323,73 @@ function clickResponse() {
     localStorage.setItem('currentChats', JSON.stringify(tempChats));
 }
 
+function logout() {
+  var object = {
+    type : "request_logout"
+  }
+  websocket.send(JSON.stringify(object));
+  localStorage.clear();
+  window.location = "index.html";
+}
+
 //Kod pomeren tako da moze da se reaguje na dugmice i pristupi kodu
 //sa svake stranice koja koristi fajl socketChat.js
 jQuery(document).ready(function() {
+
+    setInterval(function(){
+        //Proveriti
+        if(currentSelectedSession == null ){
+            $("#userInput").prop('disabled', true);
+            $("#cannedMessageSelect").prop('disabled', true);
+            $("#btnSend").prop('disabled', true);
+            $("#endBtn").prop('disabled', true);
+        } else {
+            $("#userInput").prop('disabled', false);
+            $("#cannedMessageSelect").prop('disabled', false);
+            $("#btnSend").prop('disabled', false);
+            $("#endBtn").prop('disabled', false);
+        }
+    }, 1000);
+
+  //Provera interneta
+  setInterval(function(){
+      var hasInternet = doesConnectionExist();
+      if (!hasInternet) {
+          var x = document.getElementById("alertOffline");
+          $("#alertOffline").css("display", "block");
+          x.className = "show";
+          localStorage.setItem('hadNet', 'true');
+      } else {
+          var hadNet = localStorage.getItem('hadNet');
+          if (hadNet == 'true') {
+              var x = document.getElementById("alertOnline");
+              var y = document.getElementById("alertOffline");
+              $("#alertOnline").css("display", "block");
+              $("#alertOffline").css("display", "block");
+              y.className = y.className.replace("show", "");
+              x.className = "show";
+              setTimeout(function() {
+                x.className = x.className.replace("show", "");
+
+                function load_js() {
+                  var head= document.getElementsByTagName('head')[0];
+                  var script= document.createElement('script');
+                  script.type= 'text/javascript';
+                  script.src= '/js/socketChat.js';
+                  head.appendChild(script);
+                }
+                load_js();
+              }, 3000);
+              localStorage.setItem('hadNet', 'false');
+          }
+      }
+  }, 1000);
+
     // Zavrsena logika za logout
     //TO DO JSON nije dobar
     $("#logoutBtn").click(function() {
       alert("Are you sure?");
-      var object = {
-        type : "request_logout"
-      }
-      websocket.send(JSON.stringify(object));
-      localStorage.clear();
-      window.location = "index.html";
+      logout();
     });
 
     // Logika za zvuk
@@ -294,7 +438,13 @@ jQuery(document).ready(function() {
         var username = $("#agentName").html();
         $("#userInput").val("");
 
-        $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + username + '<span class="pull-right">' + finalTime + '</span></p><p>' + message + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
+        var inputtxt = message;
+        var userMessage = replaceURLWithHTMLLinks(inputtxt);
+        $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + username + '<span class="pull-right">' + finalTime + '</span></p><p>' + userMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
+
+        //Skrolovanje nakon primljene poruke
+        var div = $(".chatContainer");
+        div.scrollTop(div.prop('scrollHeight'));
     });
 
     $("#endBtn").click(function() {

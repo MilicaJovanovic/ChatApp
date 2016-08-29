@@ -137,7 +137,7 @@ button:hover {
   width: 100%;
   bottom: 55px; }
   .template-col .form-control {
-    width: calc(100% - 42px);
+    width: 100%;
     float: right;
     height: 33px; }
   .template-col span {
@@ -178,6 +178,8 @@ button:hover {
     display: inline-block;
     right: 37px;
     bottom: 65px;
+    float: right;
+    margin-bottom: 10px;
     z-index: 5;
     width: 34px;
     height: 33px;

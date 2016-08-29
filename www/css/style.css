@@ -43,7 +43,7 @@
   bottom: 111px;
 
 .chat-list {
-  margin: 20px 0px;
+  margin: 20px 0px 0px 8px;
   position: relative;
   min-height: 55px;
 }
@@ -139,4 +139,19 @@
   line-height: 45px;
   font-size: 25px;
   color: #fff;
+}
+
+#alertOnline, #alertOffline {
+   visibility: hidden;
+   min-width: 250px;
+   margin-left: -125px;
+   background-color: #333;
+   color: #fff;
+   text-align: center;
+   border-radius: 2px;
+   padding: 16px;
+   position: fixed;
+   z-index: 2147483646;
+   left: 50%;
+   bottom: 30px;
 }

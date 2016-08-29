@@ -33,6 +33,9 @@
 </head>
 
 <body ng-app="starter" ng-controller="LoginController">
+  <div id="alertOnline" style="display: none">Connection is established</div>
+  <div id="alertOffline" style="display: none">Connection is not established</div>
+
   <header class="header-col">
     <section class="masthead-col">
       <div class="col-sm-7 col-xs-7">
@@ -60,18 +63,17 @@
         </div>
       </div>
     </section>
-    <!-- <section class="department-col">
-
-      <select class="form-control">
+    <section class="department-col">
+      <!-- <select class="form-control">
         <option>Transfer to (Agent/Dept.)</option>
         <option>Template 1</option>
         <option>Template 2</option>
         <option>Template 3</option>
         <option>Template 4</option>
         <option>Template 5</option>
-      </select>
+      </select> -->
       <span id="endBtn"><i class="fa fa-times"></i> </span>
-    </section> -->
+    </section>
   </header>
   <div id="chatsArea">
     <section class="container-fluid chat-container" id="chat-container"></section>
@@ -81,13 +83,8 @@
     <section class="template-col">
       <select class="form-control" id="cannedMessageSelect">
         <option selected disabled>Select Template Reply</option>
-        <!-- <option>Template 1</option>
-        <option>Template 2</option>
-        <option>Template 3</option>
-        <option>Template 4</option>
-        <option>Template 5</option> -->
       </select>
-      <span><i class="fa fa-plus"></i> </span>
+      <!-- <span><i class="fa fa-plus"></i> </span>
       <div class="dropup updrop">
         <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
         </button>
@@ -95,7 +92,7 @@
           <li><a href="#"><i class="fa fa-picture-o fa-2x" aria-hidden="true"></i></a></li>
           <li><a href="#"><i class="fa fa-camera fa-2x" aria-hidden="true"></i></a></li>
         </ul>
-      </div>
+      </div> -->
     </section>
     <div class="form-group">
       <textarea id="userInput" class="form-control" placeholder="Your Message here..."></textarea>
@@ -108,6 +105,13 @@
   <script src="js/bootstrap.min.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
+
+      setInterval(function(){
+        if ($("#userInput").val().length == 0) {
+          $("#userInput").height(30);
+        }
+      }, 100);
+
       $(".toggleBtn").on('click', function() {
         $(this).children('.fa-bell-slash-o, .fa-bell-o').toggleClass("fa-bell-slash-o fa-bell-o");
       });
