@@ -40,8 +40,13 @@ app.controller("LoginController", function($scope, $ionicPlatform, $cordovaVibra
         localStorage.clear();
         navigator.app.exitApp();
     } else {
-        alert("Are you sure?");
+      $('#yesNoModal').modal('show');
+      $("#btnYes").click(function() {
         logout();
+      });
+      $("#btnNo").click(function() {
+        $('#yesNoModal').modal('hide');
+      });
     }
   }, 100);
 

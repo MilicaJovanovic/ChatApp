@@ -129,5 +129,24 @@
       $('.nav-pills').css("width", ulWidth + 6);
     });
   </script>
+
+  <div id="yesNoModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+      <!-- Modal content-->
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Confirm</h4>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure?</p>
+        </div>
+        <div class="modal-footer">
+          <button id="btnYes" class="btn-default" style="width: 15% !important; height: 30px !important; border-radius: 3% !important;">Yes</button>
+          <button id="btnNo" class="btn-default" style="width: 15% !important; height: 30px !important; border-radius: 3% !important;">No</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

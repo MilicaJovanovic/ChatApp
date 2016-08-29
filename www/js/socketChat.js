@@ -388,8 +388,13 @@ jQuery(document).ready(function() {
     // Zavrsena logika za logout
     //TO DO JSON nije dobar
     $("#logoutBtn").click(function() {
-      alert("Are you sure?");
-      logout();
+      $('#yesNoModal').modal('show');
+      $("#btnYes").click(function() {
+        logout();
+      });
+      $("#btnNo").click(function() {
+        $('#yesNoModal').modal('hide');
+      });
     });
 
     // Logika za zvuk
@@ -448,13 +453,18 @@ jQuery(document).ready(function() {
     });
 
     $("#endBtn").click(function() {
+      $('#yesNoModal').modal('show');
+      $("#btnYes").click(function() {
         var object = {
             type: "request_endchat_message",
             chatSessionID: currentSelectedSession
         }
-
         websocket.send(JSON.stringify(object));
-
+        $('#yesNoModal').modal('hide');
+      });
+      $("#btnNo").click(function() {
+        $('#yesNoModal').modal('hide');
+      });
         //TO DO - update baze da se obrise taj chat
         //kao sto se desi kada klijent obrise
         //da se obrise i graficki tab
