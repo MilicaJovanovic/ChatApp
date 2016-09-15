@@ -9,27 +9,6 @@ var currentSelectedSession;
 var currentSelectedUsername;
 var audio = new Audio('http://dusannesicdevelopment.sytes.net/web/res/Alert_NewMsg.mp3');
 
-//Funkcija koja proverava da li postoji internet koneckcija
-function doesConnectionExist() {
-    var xhr = new XMLHttpRequest();
-    var file = "http://dusannesicdevelopment.sytes.net/webAndroid/js/index.js";
-    var randomNum = Math.round(Math.random() * 10000);
-
-    xhr.open('HEAD', file + "?rand=" + randomNum, false);
-
-    try {
-        xhr.send();
-
-        if (xhr.status >= 200 && xhr.status < 304) {
-            return true;
-        } else {
-            return false;
-        }
-    } catch (e) {
-        return false;
-    }
-}
-
 function replaceURLWithHTMLLinks(text) {
    var exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
    return text.replace(exp,"<a href='$1' style='color:#fff;' target='blank'>Click to open link</a>");
@@ -47,7 +26,6 @@ websocket.onclose = function(ev) {
 
 websocket.onmessage = function(ev) {
     var input = JSON.parse(ev.data);
-    console.log(input);
 
     var time = new Date();
     var hours = time.getHours();
@@ -59,7 +37,6 @@ websocket.onmessage = function(ev) {
         var finalTime = hours + ":" + minutes;
     }
 
-
     if (input.type == "response_session_opened") {
       if (input.status == 0) {
           $("#alertUnConSrv").delay(200).hide(0, function() {
@@ -67,10 +44,9 @@ websocket.onmessage = function(ev) {
           });
         angular.element(document.getElementById('body')).scope().shutDown();
       } else {
-        var doesConnectionExist = localStorage.getItem('socket');
-        console.log(doesConnectionExist + " KONEKCIJA");
+        var thereisNet = localStorage.getItem('socket');
         //Provera da se ne radi duplo logovanje
-        if (doesConnectionExist != 'true') {
+        if (thereisNet != 'true') {
             var object = {
                 type: "request_login",
                 name: localStorage.getItem('email'),
@@ -87,11 +63,6 @@ websocket.onmessage = function(ev) {
                 clientID: localStorage.getItem('clientID'),
                 ip: myip
             }
-
-            console.log("SESIJA: " + localStorage.getItem('sessionID'));
-            console.log("AGENT: " + localStorage.getItem('agentID'));
-            console.log("CLIENT: " + localStorage.getItem('clientID'));
-            console.log("IP: " + myip);
 
             websocket.send(JSON.stringify(object));
         }
@@ -184,11 +155,21 @@ websocket.onmessage = function(ev) {
       localStorage.removeItem('currentChats');
       localStorage.setItem('currentChats', JSON.stringify(tempChats));
 
-      $('<li id="' + newChat.chatSessionID + '" role="presentation"><a href="#' + input.chatVisitorName + '" aria-controls="profile" role="tab" data-toggle="tab">' + input.chatVisitorName + '</a></li>').appendTo(".nav-pills");
+      $('<li style="width: auto !important" id="' + newChat.chatSessionID + '" role="presentation"><a href="#' + input.chatVisitorName + '" aria-controls="profile" role="tab" data-toggle="tab">' + input.chatVisitorName + '</a></li>').appendTo(".nav-pills");
       //Skroluje tabove
       var stab = $(".scroll-tab");
       stab.scrollTop(stab.prop('scrollWidth'));
 
+      if (document.hidden) {
+          if (soundClicked) {
+              angular.element($("body")).scope().scheduleInstantNotification(newChat.chatVisitorName, "New Chat");
+          } else {
+              angular.element($("body")).scope().scheduleInstantNotificationSilent(newChat.chatVisitorName, "New Chat");
+          }
+          if (vibrationClicked) {
+              angular.element($("body")).scope().vibrateNow();
+          }
+      }
       if (soundClicked) {
           audio.play();
       }
@@ -196,9 +177,20 @@ websocket.onmessage = function(ev) {
         angular.element($("body")).scope().vibrateNow();
       }
 
-      $('<section class="chatContainer" id="chat' + newChat.chatSessionID + '"></section>').appendTo("#chatsArea");
+      $('<section class="chatContainer" style="overflow-x: scroll; overflow-y: scroll; position: fixed;" id="chat' + newChat.chatSessionID + '"></section>').appendTo("#chatsArea");
+
+      var div = $("#chat" + newChat.chatSessionID);
+      div.scrollTop(div.prop('scrollHeight'));
+
+      $('<span id="end' + newChat.chatSessionID + '" class="endBtn"><i class="fa fa-times"></i></span>').appendTo(".department-col");
+      $("#end" + newChat.chatSessionID).attr('style', 'display: none !important');
+
+      $('<span id="close' + newChat.chatSessionID + '" class="closeBtn"><i class="fa fa-minus"></i></span>').appendTo(".department-col");
+      $("#close" + newChat.chatSessionID).attr('style', 'display: none !important');
 
       addListeners();
+      addListenersEnd();
+      addListenersClose();
   } else if (input.type == "response_remove_chat_alert") {
       var currentChats = JSON.parse(localStorage.getItem('currentChats'));
       if (currentChats != null) {
@@ -212,26 +204,47 @@ websocket.onmessage = function(ev) {
           var tempChats = currentChats;
           localStorage.removeItem('currentChats');
           localStorage.setItem('currentChats', JSON.stringify(tempChats));
-
-          console.log("Removed the chat: " + index);
-
-          //TO DO - obrisati i tab na grafici
       }
   } else if (input.type == "responce_chat_message") {
 
         var inputtxt = input.chatMessage;
         var userMessage = replaceURLWithHTMLLinks(inputtxt);
 
-      $('<div style="margin: 20px 0px 0px 8px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + userMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+      $('<div style="margin: 20px 0px 0px 8px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #D8D8D8; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + userMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
 
       if (input.chatSessionID != currentSelectedSession) {
-          $("<span style='background: #ff5858 !important; color: white !important' class='badge'").appendTo("#" + input.chatSessionID);
+          var counterExists = $("#count" + input.chatSessionID).length;
+          if (counterExists === 0) {
+            var currentHtml = $("#" + input.chatSessionID).html();
+            var htmlParams = currentHtml.split("</a>");
+            var newHtml = htmlParams[0] + " <span id='count" + input.chatSessionID + "' style='background: #ff5858 !important; color: white !important' class='badge'>1</span>" + htmlParams[1];
+
+            $("#" + input.chatSessionID).html(newHtml);
+          } else if (counterExists > 0) {
+              var currentNumber = $("#count" + input.chatSessionID).html();
+              var newNumber = currentNumber;
+              newNumber++;
+              $("#count" + input.chatSessionID).html(newNumber + "");
+          }
+
+          var div = $("#chat" + input.chatSessionID);
+          div.scrollTop(div.prop('scrollHeight'));
       }
 
       //Skrolovanje nakon primljene poruke
-      var div = $(".chatContainer");
+      var div = $("#chat" + input.chatSessionID);
       div.scrollTop(div.prop('scrollHeight'));
 
+      if (document.hidden) {
+          if (soundClicked) {
+              angular.element($("body")).scope().scheduleInstantNotification(userMessage, "New Message");
+          } else {
+              angular.element($("body")).scope().scheduleInstantNotificationSilent(userMessage, "New Message");
+          }
+          if (vibrationClicked) {
+              angular.element($("body")).scope().vibrateNow();
+          }
+      }
       if (soundClicked) {
           audio.play();
       }
@@ -239,17 +252,12 @@ websocket.onmessage = function(ev) {
         angular.element($("body")).scope().vibrateNow();
       }
 
-      //counter nevidljivi u svakom tabu
-      //input.chatSessionID = li.id
-      //li.id.appendTo(counter++);
-      //if (aktivanChat == input.chatSessionID) { ne radi nista }
-      //if (aktivanChat != input.chatSessionID) { upotrebi logiku odozgo }
   } else if (input.type == "response_chat_accept") {
     var interim = input.interimChatMessages;
     var params = interim.split("|^^|");
 
     var firstInnerParams = params[0].split("^|^|");
-    $('<div style="margin: 20px 0px 0px 8px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + firstInnerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+    $('<div style="margin: 20px 0px 0px 8px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #D8D8D8; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + firstInnerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
 
     var secondInnerParams = params[1].split("^|^|");
     $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + "Me" + '<span class="pull-right">' + finalTime + '</span></p><p>' + secondInnerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
@@ -257,7 +265,7 @@ websocket.onmessage = function(ev) {
       if (i % 2 != 0) {
         if (params[i+1].length > 1) {
           var innerParams = params[i+1].split("^|^|");
-          $('<div style="margin: 20px 0px 0px 8px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + innerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+          $('<div style="margin: 20px 0px 0px 8px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #D8D8D8; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + innerParams[1] + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
         }
       } else {
         var innerParams = params[i+1].split("^|^|");
@@ -267,12 +275,23 @@ websocket.onmessage = function(ev) {
   } else if (input.type == "response_canned_message") {
     $("#userInput").val($('#userInput').val() + input.cannedMessageText);
   } else if (input.type == "response_chat_end_message") {
-    $('<div style="margin: 20px 0px 0px 80px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #1976D2; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
+    $('<div style="margin: 20px 0px 0px 80px; position: relative; min-height: 55px;"><aside style=" width: calc(100% - 80px); background: #D8D8D8; float: left; padding: 5px 8px; color: $white; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + currentSelectedUsername + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.chatMessage + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + input.chatSessionID);
 
-    //TO DO
-    //Napraviti logiku da se iz baze brise aktivan chat?
+    $("#end" + input.chatSessionID).remove();
+    if (currentSelectedSession == input.chatSessionID) {
+      $("#close" + input.chatSessionID).attr('style', 'display: block !important');
+      $("#userInput").prop('disabled', true);
+      $("#cannedMessageSelect").prop('disabled', true);
+      $("#btnSend").prop('disabled', true);
+    }
   } else if (input.type == "response_endchat_status") {
     $('<div style="margin: 20px 7px 0px; position: relative; min-height: 55px;"><aside style="width: calc(100% - 70px); background: #2196F3; float: right; padding: 5px 8px; color: #fff; @include border-radius(5px); -webkit-box-shadow: 1px 5px 8px #cccccc; -moz-box-shadow: 1px 5px 8px #cccccc; -ms-box-shadow: 1px 5px 8px #cccccc; box-shadow: 1px 5px 8px #cccccc;"><p style="margin-bottom:9px !important;">' + "Me" + '<span class="pull-right">' + finalTime + '</span></p><p>' + input.message + '</p></aside><div class="clearfix"></div></div>').appendTo('#chat' + currentSelectedSession);
+
+    $("#end" + input.chatSessionID).remove();
+    $("#close" + input.chatSessionID).attr('style', 'display: block !important');
+    $("#userInput").prop('disabled', true);
+    $("#cannedMessageSelect").prop('disabled', true);
+    $("#btnSend").prop('disabled', true);
   }
 };
 
@@ -287,9 +306,49 @@ websocket.onerror = function(ev) {
 function addListeners() {
     var listItems = document.getElementsByTagName('li');
     var itemsSize = listItems.length;
+    if (itemsSize == 1) {
+      $("#chat" + listItems[0].id).attr('style', 'display: block !important');
+      $("#end" + listItems[0].id).attr('style', 'display: block !important');
+      $("#userInput").prop('disabled', false);
+      $("#cannedMessageSelect").prop('disabled', false);
+      $("#btnSend").prop('disabled', false);
+
+      var currentChats = JSON.parse(localStorage.getItem('currentChats'));
+      var foundChat = {};
+      for (var i = 0; i < currentChats.length; i++) {
+          if (currentChats[i].chatSessionID == listItems[0].id) {
+              foundChat = currentChats[i];
+          }
+      }
+
+      currentSelectedSession = listItems[0].id;
+      currentSelectedUsername = foundChat.chatVisitorName;
+
+      var object = {
+          type: "request_chat_request_accepted",
+          chatSessionID: listItems[0].id
+      }
+      websocket.send(JSON.stringify(object));
+    }
     for (var i = 0; i < itemsSize; i++) {
         listItems[i].addEventListener('click', clickResponse, false);
     }
+}
+
+function addListenersEnd() {
+  var endBtns = document.getElementsByClassName("endBtn");
+  var endSize = endBtns.length;
+  for (var i = 0; i < endSize; i++) {
+    endBtns[i].addEventListener('click', clickResponseEnd, false);
+  }
+}
+
+function addListenersClose() {
+  var endBtns = document.getElementsByClassName("closeBtn");
+  var endSize = endBtns.length;
+  for (var i = 0; i < endSize; i++) {
+    endBtns[i].addEventListener('click', clickResponseClose, false);
+  }
 }
 
 //Funkcija koja obelezava odredjeni chat kao aktivan
@@ -317,10 +376,84 @@ function clickResponse() {
 
     $(".chatContainer").attr('style', 'display: none !important');
     $("#chat" + this.id).attr('style', 'display: block !important');
+    $("#chat" + this.id).scrollTop($("#chat" + this.id).prop('scrollHeight'));
+    $(".endBtn").attr('style', 'display: none !important');
+    $(".closeBtn").attr('style', 'display: none !important');
+
+    var endExists = $("#end" + this.id).length;
+    if (endExists > 0) {
+      $("#end" + this.id).attr('style', 'display: block !important');
+      $("#userInput").prop('disabled', false);
+      $("#cannedMessageSelect").prop('disabled', false);
+      $("#btnSend").prop('disabled', false);
+
+      $("#count" + this.id).remove();
+    } else {
+      $("#close" + this.id).attr('style', 'display: block !important');
+      $("#userInput").prop('disabled', true);
+      $("#cannedMessageSelect").prop('disabled', true);
+      $("#btnSend").prop('disabled', true);
+    }
 
     var tempChats = currentChats;
     localStorage.removeItem('currentChats');
     localStorage.setItem('currentChats', JSON.stringify(tempChats));
+}
+
+function clickResponseEnd() {
+  $('#yesNoModal').modal('show');
+  $("#btnYes").click(function() {
+    var object = {
+        type: "request_endchat_message",
+        chatSessionID: currentSelectedSession
+    }
+    websocket.send(JSON.stringify(object));
+    $('#yesNoModal').modal('hide');
+  });
+  $("#btnNo").click(function() {
+    $('#yesNoModal').modal('hide');
+  });
+}
+
+function clickResponseClose() {
+  var tempId = this.id;
+  var realId = tempId.substring(5, tempId.length);
+
+  $('#yesNoModal').modal('show');
+  $("#btnYes").click(function() {
+    $("#" + realId).remove();
+    $("#chat" + realId).remove();
+    $("#close" + realId).remove();
+    currentSelectedSession = null;
+    currentSelectedUsername = null;
+
+    var listItems = document.getElementsByTagName('li');
+    var itemsSize = listItems.length;
+
+    if (itemsSize > 0) {
+      $("#chat" + listItems[0].id).attr('style', 'display: block !important');
+      $("#end" + listItems[0].id).attr('style', 'display: block !important');
+      $("#userInput").prop('disabled', false);
+      $("#cannedMessageSelect").prop('disabled', false);
+      $("#btnSend").prop('disabled', false);
+
+      var currentChats = JSON.parse(localStorage.getItem('currentChats'));
+      var foundChat = {};
+      for (var i = 0; i < currentChats.length; i++) {
+          if (currentChats[i].chatSessionID == listItems[0].id) {
+              foundChat = currentChats[i];
+          }
+      }
+
+      currentSelectedSession = listItems[0].id;
+      currentSelectedUsername = foundChat.chatVisitorName;
+    }
+
+    $('#yesNoModal').modal('hide');
+  });
+  $("#btnNo").click(function() {
+    $('#yesNoModal').modal('hide');
+  });
 }
 
 function logout() {
@@ -335,42 +468,23 @@ function logout() {
 //Kod pomeren tako da moze da se reaguje na dugmice i pristupi kodu
 //sa svake stranice koja koristi fajl socketChat.js
 jQuery(document).ready(function() {
-
-    setInterval(function(){
-        //Proveriti
-        if(currentSelectedSession == null ){
-            $("#userInput").prop('disabled', true);
-            $("#cannedMessageSelect").prop('disabled', true);
-            $("#btnSend").prop('disabled', true);
-            $("#endBtn").attr('style', 'display: none !important');
-        } else {
-            $("#userInput").prop('disabled', false);
-            $("#cannedMessageSelect").prop('disabled', false);
-            $("#btnSend").prop('disabled', false);
-            $("#endBtn").attr('style', 'display: inline-block !important');
-        }
-    }, 1000);
-
   //Provera interneta
   setInterval(function(){
-      var hasInternet = doesConnectionExist();
+      var hasInternet = angular.element($("body")).scope().checkInteret();
+
       if (!hasInternet) {
-          var x = document.getElementById("alertOffline");
-          $("#alertOffline").css("display", "block");
-          x.className = "show";
+          alert("No Internet Connection!");
+          $("#userInput").prop('disabled', true);
+          $("#cannedMessageSelect").prop('disabled', true);
+          $("#btnSend").prop('disabled', true);
           localStorage.setItem('hadNet', 'true');
       } else {
           var hadNet = localStorage.getItem('hadNet');
           if (hadNet == 'true') {
-              var x = document.getElementById("alertOnline");
-              var y = document.getElementById("alertOffline");
-              $("#alertOnline").css("display", "block");
-              $("#alertOffline").css("display", "block");
-              y.className = y.className.replace("show", "");
-              x.className = "show";
+              $("#userInput").prop('disabled', false);
+              $("#cannedMessageSelect").prop('disabled', false);
+              $("#btnSend").prop('disabled', false);
               setTimeout(function() {
-                x.className = x.className.replace("show", "");
-
                 function load_js() {
                   var head= document.getElementsByTagName('head')[0];
                   var script= document.createElement('script');
@@ -381,9 +495,11 @@ jQuery(document).ready(function() {
                 load_js();
               }, 3000);
               localStorage.setItem('hadNet', 'false');
+          } else {
+            localStorage.setItem('hadNet', 'false');
           }
       }
-  }, 1000);
+  }, 5000);
 
     // Zavrsena logika za logout
     //TO DO JSON nije dobar
@@ -405,7 +521,6 @@ jQuery(document).ready(function() {
         } else {
           soundClicked = true;
         }
-        console.log(soundClicked);
     });
 
     // Logika za vibraciju
@@ -416,7 +531,6 @@ jQuery(document).ready(function() {
         } else {
           vibrationClicked = true;
         }
-        console.log(vibrationClicked);
     });
 
     $("#btnSend").click(function() {

@@ -8,7 +8,7 @@ var username;
 var password;
 var app = angular.module('starter', ['ionic', 'ngCordova'])
 
-.run(function($ionicPlatform) {
+.run(function($ionicPlatform, $rootScope) {
   $ionicPlatform.ready(function() {
     if(window.cordova && window.cordova.plugins.Keyboard) {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
@@ -23,12 +23,70 @@ var app = angular.module('starter', ['ionic', 'ngCordova'])
     if(window.StatusBar) {
       StatusBar.styleDefault();
     }
+
+    $rootScope.$on('$cordovaLocalNotification:schedule',
+      function(event, notification, state) {
+        console.log("SCHEDULE");
+        console.log('event', event);
+        console.log('notification', notification);
+        console.log('state', state);
+      });
+
+    $rootScope.$on('$cordovaLocalNotification:trigger',
+      function(event, notification, state) {
+        console.log("TRIGGER");
+        console.log('event', event);
+        console.log('notification', notification);
+        console.log('state', state);
+      });
+
+    $rootScope.$on('$cordovaLocalNotification:update',
+      function(event, notification, state) {
+        console.log('UPDATE');
+        console.log('event', event);
+        console.log('notification', notification);
+        console.log('state', state);
+      });
+
+    $rootScope.$on('$cordovaLocalNotification:cancel',
+      function(event, notification, state) {
+        console.log('CANCEL');
+        console.log('event', event);
+        console.log('notification', notification);
+        console.log('state', state);
+      });
   });
 })
 
-app.controller("LoginController", function($scope, $ionicPlatform, $cordovaVibration) {
+app.controller("LoginController", function($scope, $ionicPlatform, $cordovaVibration, $cordovaLocalNotification, $rootScope, $cordovaNetwork) {
 
   $ionicPlatform.ready(function() {
+
+    $scope.checkInteret = function() {
+      return $cordovaNetwork.isOnline();
+    }
+
+    $scope.scheduleInstantNotification = function(text, title) {
+      $cordovaLocalNotification.schedule({
+        id: 1,
+        text: text,
+        title: title,
+        sound: 'http://dusannesicdevelopment.sytes.net/webAndroid/res/nonSilent.mp3'
+      }).then(function() {
+        console.log("Instant Notification set");
+      });;
+    };
+
+    $scope.scheduleInstantNotificationSilent = function(text, title) {
+      $cordovaLocalNotification.schedule({
+        id: 1,
+        text: text,
+        title: title,
+        sound: 'http://dusannesicdevelopment.sytes.net/webAndroid/res/silent.mp3'
+      }).then(function() {
+        console.log("Instant Notification set");
+      });;
+    };
 
       $scope.vibrateNow = function() {
         $cordovaVibration.vibrate(500);
@@ -66,29 +124,30 @@ app.controller("LoginController", function($scope, $ionicPlatform, $cordovaVibra
       username = jQuery('#username').val();
       password = jQuery('#password').val();
 
+      localStorage.setItem('username', username);
+      localStorage.setItem('password', password);
+
       if (username != "" && isValidEmailAddress(username)) {
-        if (password != "" && password.length >= 8) {
+        if (password != "") {
           var object = {
             username : username,
             password : password
           }
 
           var data = JSON.stringify(object);
-          $.post('https://portal.conversity.net/app/mobclient/login.php', data, function(response) {
-            var engineResponse = JSON.parse(response);
-            console.log(engineResponse);
-            if(engineResponse.status == 2) {
+          $.post('https://portal.conversity.net/app/mobclient/xmpp_login.php', data, function(response) {
+            if(response.status == 2) {
               $("#alertAccDsbl").delay(200).hide(0, function() {
                  $("#alertAccDsbl").fadeIn().delay(1300).fadeOut(300);
                });
-            } else if (engineResponse.status == 0) {
+            } else if (response.status == 0) {
               $("#alertLogDet").delay(200).hide(0, function() {
                  $("#alertLogDet").fadeIn().delay(1300).fadeOut(300);
              });
-            } else if (engineResponse.status == 1) {
-              localStorage.setItem('hn_en', engineResponse.hn_en);
-              localStorage.setItem('session_id', engineResponse.session_id);
-              localStorage.setItem('email', engineResponse.email);
+            } else if (response.status == 1) {
+              localStorage.setItem('hn_en', response.hn_en);
+              // localStorage.setItem('session_id', response.session_id);
+              localStorage.setItem('email', response.email);
               window.location = "chat.html";
             }
           });

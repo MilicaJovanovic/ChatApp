@@ -16,31 +16,26 @@
 
 #userInput {
   resize: none !important;
-  overflow: hidden !important;
-  bottom: 0;
-  position: fixed;
-  margin-bottom: 28px;
+  overflow: vertical !important;
 }
 
 #chatsArea {
-  overflow-x: scroll;
   overflow-y: scroll;
   position: fixed;
   width: 100%;
-  top: 160px;
-  bottom: 111px;
+  top: 100px;
+  bottom: 121px;
 }
 
 #tabsDiv {
-  width: 100% !important;
+  width: 5000% !important;
 }
 .chatContainer {
-  overflow-x: scroll;
   overflow-y: scroll;
   position: fixed;
   width: 100%;
   top: 160px;
-  bottom: 111px;
+  bottom: 151px;
 
 .chat-list {
   margin: 20px 0px 0px 8px;

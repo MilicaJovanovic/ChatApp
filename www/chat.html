@@ -15,21 +15,10 @@
   <script src="cordova.js"></script>
   <script src="js/ng-cordova.min.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/socketChat.js"></script>
+  <!-- <script src="js/socketChat.js"></script> -->
+  <script src="js/strophe.js"></script>
+  <script src="js/xmppcontroller.js"></script>
   <script type="text/javascript" src="http://l2.io/ip.js?var=myip"></script>
-
-  <!-- Kod koji sluzi da povecava text polje kada se kuca kod -->
-  <script>
-    var textarea = null;
-    window.addEventListener("load", function() {
-        textarea = window.document.querySelector("textarea");
-        textarea.addEventListener("keypress", function() {
-            if(textarea.scrollTop != 0){
-                textarea.style.height = textarea.scrollHeight + "px";
-            }
-        }, false);
-    }, false);
-  </script>
 </head>
 
 <body ng-app="starter" ng-controller="LoginController">
@@ -72,7 +61,8 @@
         <option>Template 4</option>
         <option>Template 5</option>
       </select> -->
-      <span id="endBtn"><i class="fa fa-times"></i> </span>
+      <!-- <span id="endBtn"><i class="fa fa-times"></i> </span> -->
+      <!-- <span id="closeBtn"><i class="fa fa-minus"></i> </span> -->
     </section>
   </header>
   <div id="chatsArea">
